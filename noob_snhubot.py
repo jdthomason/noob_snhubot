@@ -65,6 +65,16 @@ def parse_bot_commands(slack_events):
     """
     for event in slack_events:
         if event["type"] == "message" and not "subtype" in event:
+            """
+            All messages are processed for the leaderboard here, only if the collection exists in DB_CONFIG
+            and if the bot didn't create them.  Counting those is funny, but probably pointless.
+            """
+            if "leaderboard" in DB_CONFIG["collections"] and event["user"] != bot_id:
+                process_message(event)
+
+            """
+            Now we can look for specific messages
+            """
             user_id, message = parse_direct_mention(event["text"])
             if user_id == bot_id:
                 return message, event["channel"], event["user"], event["type"]
@@ -158,6 +168,55 @@ def handle_command(command, channel, user, msg_type):
             channel=channel,
             text=response or default_response
         )
+
+
+def process_message(message):
+
+    mongo.use_db(DB_CONFIG['db'])
+    mongo.use_collection(DB_CONFIG['collections']['leaderboard'])
+
+    datetime_now = datetime.datetime.utcnow()
+    user_id = message['user']
+    msg_text = message['text']
+    num_words = len(msg_text.split(' '))
+    num_files = len(message['files']) if "files" in message else 0
+    num_bot_calls = 1 if message['text'].startswith("<@{}>".format(bot_id)) else 0
+    user_info = slack_client.api_call("users.info", user=user_id)
+    real_name = user_info['user']['real_name']
+    display_name = user_info['user']['profile']['display_name']
+
+    query = {"user_id": user_id}
+
+    if mongo.find_document(query):
+        current = mongo.find_document(query)
+
+        update = {
+            "$set": {
+                'updated': datetime_now,
+                'posts': current['posts'] + 1,
+                'words': current['words'] + num_words,
+                'avg_words': (current['words'] + num_words) / (current['posts'] + 1),
+                'files': current['files'] + num_files,
+                'bot_calls': current['bot_calls'] + num_bot_calls
+            }
+        }
+        mongo.update_document(query, update)
+        print(current)
+    else:
+        doc = {'updated': datetime_now,
+               'user_id': user_id,
+               'real_name': real_name,
+               'display_name': display_name,
+               'posts': 1,
+               'words': num_words,
+               'avg_words': num_words,
+               'files': num_files,
+               'bot_calls': num_bot_calls
+               }
+        mongo.insert_document(doc)
+
+    return None
+
 
 def main():
     """
