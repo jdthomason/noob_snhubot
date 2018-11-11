@@ -9,6 +9,7 @@ import os
 from slackclient import SlackClient
 from BotHelper import Scheduler
 from BotHelper import MongoConnection
+from BotHelper import EventProcessor
 
 # Import bot cmds
 import cmds
@@ -35,6 +36,7 @@ client_id = BOT_CONFIG['token'] if BOT_CONFIG else os.environ['SLACK_CLIENT'] # 
 
 slack_client = SlackClient(client_id) # create new Slack Client object
 scheduler = Scheduler() # Scheduled events
+event_processor = EventProcessor(slack_client)
 
 if DB_CONFIG:
     mongo = MongoConnection(
@@ -64,17 +66,19 @@ def parse_bot_commands(slack_events):
     If it's not found, then this function returns None, None.
     """
     for event in slack_events:
+        event_processor.add_event(event)
         if event["type"] == "message" and not "subtype" in event:
-            """
-            All messages are processed for the leaderboard here, only if the collection exists in DB_CONFIG
-            and if the bot didn't create them.  Counting those is funny, but probably pointless.
-            """
-            if "leaderboard" in DB_CONFIG["collections"] and event["user"] != bot_id:
-                process_message(event)
+            # """
+            # All messages are processed for the leaderboard here, only if the collection exists in DB_CONFIG
+            # and if the bot didn't create them.  Counting those is funny, but probably pointless.
+            # """
+            # if "leaderboard" in DB_CONFIG["collections"] and event["user"] != bot_id:
+            #     process_message(event)
+            #
+            # """
+            # Now we can look for specific messages
+            # """
 
-            """
-            Now we can look for specific messages
-            """
             user_id, message = parse_direct_mention(event["text"])
             if user_id == bot_id:
                 return message, event["channel"], event["user"], event["type"]
@@ -169,55 +173,6 @@ def handle_command(command, channel, user, msg_type):
             text=response or default_response
         )
 
-
-def process_message(message):
-
-    mongo.use_db(DB_CONFIG['db'])
-    mongo.use_collection(DB_CONFIG['collections']['leaderboard'])
-
-    datetime_now = datetime.datetime.utcnow()
-    user_id = message['user']
-    msg_text = message['text']
-    num_words = len(msg_text.split(' '))
-    num_files = len(message['files']) if "files" in message else 0
-    num_bot_calls = 1 if message['text'].startswith("<@{}>".format(bot_id)) else 0
-    user_info = slack_client.api_call("users.info", user=user_id)
-    real_name = user_info['user']['real_name']
-    display_name = user_info['user']['profile']['display_name']
-
-    query = {"user_id": user_id}
-
-    if mongo.find_document(query):
-        current = mongo.find_document(query)
-
-        update = {
-            "$set": {
-                'updated': datetime_now,
-                'posts': current['posts'] + 1,
-                'words': current['words'] + num_words,
-                'avg_words': (current['words'] + num_words) / (current['posts'] + 1),
-                'files': current['files'] + num_files,
-                'bot_calls': current['bot_calls'] + num_bot_calls
-            }
-        }
-        mongo.update_document(query, update)
-        print(current)
-    else:
-        doc = {'updated': datetime_now,
-               'user_id': user_id,
-               'real_name': real_name,
-               'display_name': display_name,
-               'posts': 1,
-               'words': num_words,
-               'avg_words': num_words,
-               'files': num_files,
-               'bot_calls': num_bot_calls
-               }
-        mongo.insert_document(doc)
-
-    return None
-
-
 def main():
     """
     Primary logic loop.
@@ -227,13 +182,15 @@ def main():
         #if slack_client.rtm_connect(with_team_state=False):
         if slack_client.rtm_connect(with_team_state=False, auto_reconnect=True):            
             output("Noob SNHUbot connected and running!")
+            event_processor.run()
             
             # pull global bot_id into scope
             global bot_id
             
             # Read bot's user id by calling Web API method 'auth.test'            
             bot_id = slack_client.api_call("auth.test")["user_id"]
-            output(f"Bot ID: {bot_id}")            
+            output(f"Bot ID: {bot_id}")
+            event_processor.set_bot_id(bot_id)
             
             if DB_CONFIG:
                 mongo.use_db(DB_CONFIG['db'])
