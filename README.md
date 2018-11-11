@@ -34,6 +34,8 @@ Noob SNHUbot will respond to the following direct messages. To begin a conversat
     * `lists`: gives video links pertaining to Python lists.
     * `project`: gives video links pertaining to the various script projects in IT-140.
     * `regex`: gives video links pertaining to regular expressions in Python. 
+* leaderboard:
+    * Work in progress.  Aiming to allow users access to various post metrics.
 * packtbook
   * Reaches out to the Packtbook Website to display the latest free book of the day.
   * `packtbook mini` will show the attachment in a smaller format.
@@ -92,11 +94,13 @@ mongo:
   collections:
     conn: conn_log
     cmds: cmd_log
+    leaderboard: lb_log
   hostname: my_db_server
   port: 27017
 ```
 
-Mongo DB logging is optional and can be omitted from the configuration file.
+Mongo DB logging is optional and can be omitted from the configuration file. If the config is present, `leaderboard` can
+be omitted specifically to disable event tracking.
 
 Additionally, the `config.yml` file can be omitted to fall back on utilizing the `SLACK_CLIENT` environment variable.
 
