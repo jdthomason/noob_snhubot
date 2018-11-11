@@ -36,7 +36,6 @@ client_id = BOT_CONFIG['token'] if BOT_CONFIG else os.environ['SLACK_CLIENT'] # 
 
 slack_client = SlackClient(client_id) # create new Slack Client object
 scheduler = Scheduler() # Scheduled events
-event_processor = EventProcessor(slack_client)
 
 if DB_CONFIG:
     mongo = MongoConnection(
@@ -45,6 +44,10 @@ if DB_CONFIG:
         hostname = DB_CONFIG['hostname'], 
         port = DB_CONFIG['port']    
     )
+
+    # Start the event processor if the leaderboard config exists
+    if "leaderboard" in DB_CONFIG['collections']:
+        event_processor = EventProcessor(slack_client, DB_CONFIG)
 
     # Exit if not connected to database
     if not mongo.connected:
@@ -66,19 +69,10 @@ def parse_bot_commands(slack_events):
     If it's not found, then this function returns None, None.
     """
     for event in slack_events:
-        event_processor.add_event(event)
-        if event["type"] == "message" and not "subtype" in event:
-            # """
-            # All messages are processed for the leaderboard here, only if the collection exists in DB_CONFIG
-            # and if the bot didn't create them.  Counting those is funny, but probably pointless.
-            # """
-            # if "leaderboard" in DB_CONFIG["collections"] and event["user"] != bot_id:
-            #     process_message(event)
-            #
-            # """
-            # Now we can look for specific messages
-            # """
+        if event_processor:
+            event_processor.add_event(event)
 
+        if event["type"] == "message" and not "subtype" in event:
             user_id, message = parse_direct_mention(event["text"])
             if user_id == bot_id:
                 return message, event["channel"], event["user"], event["type"]
