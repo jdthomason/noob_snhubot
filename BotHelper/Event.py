@@ -26,6 +26,7 @@ class Event:
         self.files = None
         self.data = None
         self.bot_calls = None
+        self.bot_thanks = None
 
     def set_starting_values(self, event, users, bot_id):
 
@@ -82,3 +83,4 @@ class Event:
         self.data = (float(event["files"][0]["size"]) * 1e-6) if "files" in event \
                                                                      and "size" in event["files"][0] else 0
         self.bot_calls = 1 if self.event_text.startswith("<@{}>".format(bot_id)) else 0
+        self.bot_thanks = 0

@@ -87,6 +87,7 @@ class EventProcessor:
             'files': 0,
             'total_data': 0,
             'bot_calls': 0,
+            'bot_thanks': 0,
             'mentions': 0,
             'mentioned': 0,
             'emojis_used': 0,
@@ -157,6 +158,7 @@ class EventProcessor:
                 'files': current['files'] + event.files,
                 'total_data': current['total_data'] + event.data,
                 'bot_calls': current['bot_calls'] + event.bot_calls,
+                'bot_thanks' : current['bot_thanks'] + event.bot_thanks,
                 'emojis_used': current['emojis_used'] + event.emojis_used
             }
         }
