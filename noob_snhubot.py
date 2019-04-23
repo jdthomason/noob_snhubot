@@ -45,7 +45,9 @@ if DB_CONFIG:
         port = DB_CONFIG['port']    
     )
 
-    # Start the event processor if the leaderboard config exists
+    ###
+    ### If the DB is active and there is a 'leaderboard' key, create an EventProcessor object
+    ###
     if "leaderboard" in DB_CONFIG['collections']:
         event_processor = EventProcessor(slack_client, DB_CONFIG)
 
@@ -177,8 +179,13 @@ def main():
         #if slack_client.rtm_connect(with_team_state=False):
         if slack_client.rtm_connect(with_team_state=False, auto_reconnect=True):            
             output("Noob SNHUbot connected and running!")
+
+            ###
+            ### If the event_processor object exists, turn it on
+            ###
             if event_processor:
                 event_processor.run()
+                output("Event processor active!")
             
             # pull global bot_id into scope
             global bot_id
@@ -186,6 +193,10 @@ def main():
             # Read bot's user id by calling Web API method 'auth.test'            
             bot_id = slack_client.api_call("auth.test")["user_id"]
             output(f"Bot ID: {bot_id}")
+
+            ###
+            ### The event processor needs the bot id, so set that here.
+            ###
             if event_processor:
                 event_processor.set_bot_id(bot_id)
             
