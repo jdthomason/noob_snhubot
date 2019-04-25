@@ -34,9 +34,10 @@ MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
 bot_id = None # bot's user ID in Slack (updated on connection)
 thanks_regex = None # to be updated when the bot_id is known
 client_id = BOT_CONFIG['token'] if BOT_CONFIG else os.environ['SLACK_CLIENT'] # load client token from config
+client_oauth = BOT_CONFIG['oauth'] if BOT_CONFIG else os.environ['SLACK_OAUTH']
 
 slack_client = SlackClient(client_id) # create new Slack Client object
-user_client = SlackClient("key goes here")
+user_client = SlackClient(client_oauth)
 scheduler = Scheduler() # Scheduled events
 
 if DB_CONFIG:
@@ -75,15 +76,12 @@ def was_thanked(event):
                     channel=thanked_channel,
                     latest=thanked_time,
                     count=10
-                    )["messages"]
+                    )
 
     # Step One: See if the user actually had a bot request in the last 10 messages
     # in the channel:
 
-    print(len(chat_history))
-
-    for item in chat_history:
-        print(item)
+    print(chat_history)
 
     # Say something nice to the user
     slack_client.api_call(
@@ -112,6 +110,7 @@ def parse_bot_commands(slack_events):
             # Look for "chatter" events here
             if is_chatter(event):
                 print("Yes")
+                was_thanked(event)
             else:
                 user_id, message = parse_direct_mention(event["text"])
                 if user_id == bot_id:
