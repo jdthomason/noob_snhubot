@@ -9,7 +9,8 @@ import os
 from slackclient import SlackClient
 from BotHelper import Scheduler
 from BotHelper import MongoConnection
-from BotHelper import is_chatter
+from BotHelper import ChatterBox
+from BotHelper import ChatterType
 
 # Import bot cmds
 import cmds
@@ -32,12 +33,15 @@ MENTION_REGEX = "^<@(|[WU].+?)>(.*)"
 
 # global variables
 bot_id = None # bot's user ID in Slack (updated on connection)
-thanks_regex = None # to be updated when the bot_id is known
+
 client_id = BOT_CONFIG['token'] if BOT_CONFIG else os.environ['SLACK_CLIENT'] # load client token from config
 client_oauth = BOT_CONFIG['oauth'] if BOT_CONFIG else os.environ['SLACK_OAUTH']
 
 slack_client = SlackClient(client_id) # create new Slack Client object
-user_client = SlackClient(client_oauth)
+oauth_client = SlackClient(client_oauth) # create new Slack OAuth client
+
+chatter_box = ChatterBox() # create chatter processor
+
 scheduler = Scheduler() # Scheduled events
 
 if DB_CONFIG:
@@ -61,43 +65,6 @@ def output(message):
     """
     print(f"UTC: {datetime.datetime.utcnow().timestamp()} - {message}")
 
-def was_thanked(event):
-    """
-    This function executes when it is clear that a user has thanked the bot
-    """
-
-    # Grab some stuff from the event.  The channel where the message was, the user
-    # who did the thanking, and the timestamp
-    thanked_channel = event["channel"]
-    thanked_user = event["user"]
-    thanked_time = event["ts"]
-    chat_history = user_client.api_call(
-                    "channels.history",
-                    channel=thanked_channel,
-                    latest=thanked_time,
-                    count=10
-                    )
-
-    # Step One: See if the user actually had a bot request in the last 10 messages
-    # in the channel:
-
-    print(chat_history)
-
-    # Say something nice to the user
-    slack_client.api_call(
-            "chat.postMessage",
-            channel=event["channel"],
-            text="You're welcome, <@{}>!".format(event["user"])
-        )
-    # Give a nice reaction to the users message
-    slack_client.api_call(
-            "reactions.add",
-            channel=event["channel"],
-            name="thumbsup",
-            timestamp=event["ts"]
-        )
-
-
 def parse_bot_commands(slack_events):
     """
     Parses a list of events coming from the Slack RTM API to find bot commands.
@@ -108,9 +75,11 @@ def parse_bot_commands(slack_events):
     for event in slack_events:
         if event["type"] == "message" and not "subtype" in event:
             # Look for "chatter" events here
-            if is_chatter(event):
-                print("Yes")
-                was_thanked(event)
+
+            bool_chatter, type_chatter = chatter_box.is_chatter(event)
+
+            if bool_chatter:
+                chatter_box.process_chatter(event, type_chatter)
             else:
                 user_id, message = parse_direct_mention(event["text"])
                 if user_id == bot_id:
@@ -219,12 +188,10 @@ def main():
             
             # pull global bot_id into scope
             global bot_id
-            global thanks_regex
             
             # Read bot's user id by calling Web API method 'auth.test'            
             bot_id = slack_client.api_call("auth.test")["user_id"]
-            thanks_regex = r"^.*((([Tt][Hh][Aa][Nn][Kk][Ss]?(\s[Yy][Oo][Uu])?)[\w\s,.!]*(?=\s?<@" + bot_id + r">))|(<@" \
-                + bot_id + r">(?=[,.!]*\s[,.!]*([Tt][Hh][Aa][Nn][Kk][Ss]?(\s[Yy][Oo][Uu])?)))).*$"
+            chatter_box.set_things(bot_id, slack_client, oauth_client, commands)
             output(f"Bot ID: {bot_id}")            
             
             if DB_CONFIG:
