@@ -21,6 +21,14 @@ class ChatterBox:
         oauth_client: an instance of slackclient utilizing the oauth slack token.
         commands_list: list of valid bot commands imported from main().
         thanks_messages: dictionary of various you're welcome responses for the bot.    
+
+        Functions:
+
+        __init__: creates the attributes we will be using.
+        set_things: many of the attributes cannot be set immediately.  This is called when we can create the werid ones.
+        is_chatter: function used to determine if a user message is "chatter."
+        process_chatter: if a message is deemed "chatter," it can be processed here.
+        was_thanked: if the user is thanking the bot, we will handle the next step here.
     """
 
     def __init__(self):
