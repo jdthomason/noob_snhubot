@@ -177,15 +177,16 @@ class ChatterBox:
             if re.match(self.thanks_regex, item):
                 user_thanks_history.append(item)
         
-        if len(user_thanks_history) == 0:
+        if len(user_bot_history) == 0:
             say_youre_welcome(0, self.thanks_messages["No Thanks"])
-        elif len(user_thanks_history) == 1:
-            say_youre_welcome(1, self.thanks_messages["One Thanks"])
-        elif len(user_thanks_history) == 2:
-            say_youre_welcome(2, self.thanks_messages["Two Thanks"])
-        elif len(user_thanks_history) == 3:
-            say_youre_welcome(3, self.thanks_messages["Three Thanks"])
-        elif len(user_thanks_history) == 4:
-            say_youre_welcome(4, self.thanks_messages["Four Thanks"])
-        elif len(user_thanks_history) >= 5:
-            say_youre_welcome(5, None)
+        elif len(user_bot_history) >= 1:
+            if len(user_thanks_history) == 1:
+                say_youre_welcome(1, self.thanks_messages["One Thanks"])
+            elif len(user_thanks_history) == 2:
+                say_youre_welcome(2, self.thanks_messages["Two Thanks"])
+            elif len(user_thanks_history) == 3:
+                say_youre_welcome(3, self.thanks_messages["Three Thanks"])
+            elif len(user_thanks_history) == 4:
+                say_youre_welcome(4, self.thanks_messages["Four Thanks"])
+            elif len(user_thanks_history) >= 5:
+                say_youre_welcome(5, None)
