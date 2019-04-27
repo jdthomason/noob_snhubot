@@ -49,8 +49,8 @@ def execute(command, user):
     url = 'https://www.packtpub.com/packt/offers/free-learning/'
 
     # Optional mini output
-    if len(command.split()) > 1:
-        arg = command.split()[1]
+    #if len(command.split()) > 1:
+        #arg = command.split()[1]
 
         #if arg.lower() == "mini":
         #    mini = True
