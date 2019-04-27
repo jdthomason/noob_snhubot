@@ -164,7 +164,7 @@ class ChatterBox:
         user_bot_history = []
         user_thanks_history = []
 
-        # Step One: See if the user actually had a bot request in the last 10 messages
+        # Step One: See if the user actually had a bot request in the last 20 messages
         # in the channel:
 
         for item in chat_history:
