@@ -33,7 +33,7 @@ class ChatterBox:
         self.oauth_client = None
         self.commands_list = None
         self.thanks_messages = {
-            "No Thanks" : ["Did I help you with something? I don't recall.", "For what?  I don't remember", "I don't see that I helped you.  Try a command!"],
+            "No Thanks" : ["Did I help you with something? I don't recall, ", "For what?  I don't remember, ", "I don't see that I helped you.  Try a fun command, "],
             "One Thanks" : ["You're welcome, ", "Of course, ", "No, thank YOU, ", "No problem, ", "Anytime, ",
                                 "My pleasure, ", "I live to serve, ", "Don't mention it, ", "Happy to help, ", "De nada, ", "No worries, "],
             "Two Thanks" : ["Thanking me twice?  I feel special, ", "No need to keep thanking me, ", "You're welcome x2, "],
