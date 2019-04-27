@@ -56,8 +56,10 @@ class ChatterBox:
         self.bot_text = "<@{}>".format(bot_id)
         self.commands_list = commands
         self.bot_start_texts = [self.bot_text + " " + x for x in self.commands_list]
-        self.thanks_regex = r"^.*((([Tt][Hh][Aa][Nn][Kk][Ss]?(\s[Yy][Oo][Uu])?)[\w\s,.!]*(?=\s?<@" + self.bot_id + r">))|(<@" \
-                + self.bot_id + r">(?=[,.!]*\s[,.!]*([Tt][Hh][Aa][Nn][Kk][Ss]?(\s[Yy][Oo][Uu])?)))).*$"
+        self.thanks_regex = r"^.*?(?:[\W]*?<@" + bot_id.lower() + r">[\W\w]*?(?=thanks?[\W].*?(?:\syou[\W].*?)?)|thanks?[\W].*?(?:\syou[\W].*?)?(?=<@" \
+            + bot_id.lower() + r">)){1}.*?$"
+        #self.thanks_regex = r"^.*((([Tt][Hh][Aa][Nn][Kk][Ss]?(\s[Yy][Oo][Uu])?)[\w\s,.!]*(?=\s?<@" + self.bot_id + r">))|(<@" \
+        #        + self.bot_id + r">(?=[,.!]*\s[,.!]*([Tt][Hh][Aa][Nn][Kk][Ss]?(\s[Yy][Oo][Uu])?)))).*$"
         self.slack_client = slack_client
         self.oauth_client = oauth_client
         
@@ -75,7 +77,7 @@ class ChatterBox:
         """
         # The first thing to look for is a thank you message:
 
-        if re.match(self.thanks_regex, event["text"]):
+        if re.match(self.thanks_regex, event["text"].lower()):
             return True, ChatterType.THANKS
         else:
             return False, None
