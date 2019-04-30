@@ -134,9 +134,9 @@ class ChatterBox:
 
         # This function posts a response to the user depending on a few circumstances to be figured out
         # shortly
-        def say_youre_welcome(num, message_pool):
+        def say_youre_welcome(bot_history, thanks_history):
             
-            if num <= 4:
+            def youre_welcome_message(message_pool):
                 # Say something to the user
                 self.slack_client.api_call(
                     "chat.postMessage",
@@ -144,23 +144,28 @@ class ChatterBox:
                     text=random.choice(message_pool) + "<@{}>.".format(thanked_user)
                 )
 
-                if num == 1:
-                    # Give a nice reaction to the users message
-                    self.slack_client.api_call(
-                        "reactions.add",
-                        channel=thanked_channel,
-                        name="thumbsup",
-                        timestamp=thanked_time
-                    )
-                elif num == 2:
-                    # Give a nice reaction to the users message
-                    self.slack_client.api_call(
-                        "reactions.add",
-                        channel=thanked_channel,
-                        name="astonished",
-                        timestamp=thanked_time
-                    )
-            else:
+            def youre_welcome_emote(icon):
+                # Give a nice reaction to the users message
+                self.slack_client.api_call(
+                    "reactions.add",
+                    channel=thanked_channel,
+                    name=icon,
+                    timestamp=thanked_time
+                )
+
+            if bot_history == 0:
+                youre_welcome_message(self.thanks_messages[0])
+            elif bot_history == 1:
+                youre_welcome_message(self.thanks_messages[1])
+                youre_welcome_emote("thumbsup")
+            elif bot_history == 2:
+                youre_welcome_message(self.thanks_messages[2])
+                youre_welcome_emote("astonished")
+            elif bot_history == 3:
+                youre_welcome_message(self.thanks_messages[3])
+            elif bot_history == 4:
+                youre_welcome_message(self.thanks_messages[4])
+            elif bot_history >= 5:
                 self.oauth_client.api_call(
                     "chat.update",
                     channel=thanked_channel,
@@ -184,26 +189,19 @@ class ChatterBox:
         # Step One: See if the user actually had a bot request in the last 20 messages
         # in the channel:
 
+        # This pulls all the messages from the user
         for item in chat_history:
             if "subtype" not in item:
                 user_history.append(item["text"])
 
+        # Process the items
         for item in user_history:
+            # This separates the messages with bot commands
             if item.startswith(tuple(self.bot_start_texts)):
                 user_bot_history.append(item)
+            # This separates the messages with previous thanks
             if self.thanks_reg.match(item):
                 user_thanks_history.append(item)
-        
-        if len(user_bot_history) == 0:
-            say_youre_welcome(0, self.thanks_messages[0])
-        elif len(user_bot_history) >= 1:
-            if len(user_thanks_history) == 1:
-                say_youre_welcome(1, self.thanks_messages[1])
-            elif len(user_thanks_history) == 2:
-                say_youre_welcome(2, self.thanks_messages[2])
-            elif len(user_thanks_history) == 3:
-                say_youre_welcome(3, self.thanks_messages[3])
-            elif len(user_thanks_history) == 4:
-                say_youre_welcome(4, self.thanks_messages[4])
-            elif len(user_thanks_history) >= 5:
-                say_youre_welcome(5, None)
+
+        # Do the work
+        say_youre_welcome(len(user_bot_history), len(user_thanks_history))
