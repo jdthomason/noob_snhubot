@@ -155,23 +155,24 @@ class ChatterBox:
 
             if bot_history == 0:
                 youre_welcome_message(self.thanks_messages[0])
-            elif bot_history == 1:
-                youre_welcome_message(self.thanks_messages[1])
-                youre_welcome_emote("thumbsup")
-            elif bot_history == 2:
-                youre_welcome_message(self.thanks_messages[2])
-                youre_welcome_emote("astonished")
-            elif bot_history == 3:
-                youre_welcome_message(self.thanks_messages[3])
-            elif bot_history == 4:
-                youre_welcome_message(self.thanks_messages[4])
-            elif bot_history >= 5:
-                self.oauth_client.api_call(
-                    "chat.update",
-                    channel=thanked_channel,
-                    text="_This thank you has been redacted._",
-                    ts=thanked_time
-                )
+            else:
+                if thanks_history == 0:
+                    youre_welcome_message(self.thanks_messages[1])
+                    youre_welcome_emote("thumbsup")
+                elif thanks_history == 1:
+                    youre_welcome_message(self.thanks_messages[2])
+                    youre_welcome_emote("astonished")
+                elif thanks_history == 2:
+                    youre_welcome_message(self.thanks_messages[3])
+                elif thanks_history == 3:
+                    youre_welcome_message(self.thanks_messages[4])
+                elif thanks_history >= 4:
+                    self.oauth_client.api_call(
+                        "chat.update",
+                        channel=thanked_channel,
+                        text="_This thank you has been redacted._",
+                        ts=thanked_time
+                    )
 
         # Grab the chat history here
         chat_history = self.oauth_client.api_call(
