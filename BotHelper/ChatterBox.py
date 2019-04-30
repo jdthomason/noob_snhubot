@@ -64,8 +64,25 @@ class ChatterBox:
         self.bot_text = "<@{}>".format(bot_id)
         self.commands_list = commands
         self.bot_start_texts = [self.bot_text + " " + x for x in self.commands_list]
-        self.thanks_regex = r"^.*((([Tt][Hh][Aa][Nn][Kk][Ss]?(\s[Yy][Oo][Uu])?)[\w\s,.!]*(?=\s?<@" + self.bot_id + r">))|(<@" \
-                + self.bot_id + r">(?=[,.!]*\s[,.!]*([Tt][Hh][Aa][Nn][Kk][Ss]?(\s[Yy][Oo][Uu])?)))).*$"
+        self.thanks_reg = re.compile(
+            r"""
+            # match anything, but stop at the action
+            ^.*?
+            # start of main non-capture group    
+            (?:
+            # option 1: bot followed by thanks  
+            (?:<@{0}>[\W\w]*?\sthanks?(?:\syou)?)
+            # or:
+            |
+            # option 2: thanks followed by bot
+            (?:thanks?(?:\syou)?[\W\w]*?\s<@{0}>)
+            # end of main non-capture group
+            )       
+            # match anything, but stop at the end of the line
+            .*?$     
+            """.format(self.bot_id),
+            re.IGNORECASE | re.VERBOSE
+        )
         self.slack_client = slack_client
         self.oauth_client = oauth_client
         
@@ -83,7 +100,7 @@ class ChatterBox:
         """
         # The first thing to look for is a thank you message:
 
-        if re.match(self.thanks_regex, event["text"]):
+        if self.thanks_reg.match(event["text"]):
             return True, ChatterType.THANKS
         else:
             return False, None
@@ -174,7 +191,7 @@ class ChatterBox:
         for item in user_history:
             if item.startswith(tuple(self.bot_start_texts)):
                 user_bot_history.append(item)
-            if re.match(self.thanks_regex, item):
+            if self.thanks_reg.match(item):
                 user_thanks_history.append(item)
         
         if len(user_bot_history) == 0:
