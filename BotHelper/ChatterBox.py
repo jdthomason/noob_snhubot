@@ -40,14 +40,14 @@ class ChatterBox:
         self.slack_client = None
         self.oauth_client = None
         self.commands_list = None
-        self.thanks_messages = {
-            "No Thanks" : ["Did I help you with something? I don't recall, ", "For what?  I don't remember, ", "I don't see that I helped you.  Try a fun command, "],
-            "One Thanks" : ["You're welcome, ", "Of course, ", "No, thank YOU, ", "No problem, ", "Anytime, ",
-                                "My pleasure, ", "I live to serve, ", "Don't mention it, ", "Happy to help, ", "De nada, ", "No worries, "],
-            "Two Thanks" : ["Thanking me twice?  I feel special, ", "No need to keep thanking me, ", "You're welcome x2, "],
-            "Three Thanks" : ["You're welcome.  You can stop now, ", "Again huh?  Sure thing, ", "That is probably adequate thanking, "],
-            "Four Thanks" : ["Seriously, stop thanking me, ", "I think that is good enough, ", "You're welcome.  Again.  You can stop now, "]
-        }
+        self.thanks_messages = [
+            ["Did I help you with something? I don't recall, ", "For what?  I don't remember, ", "I don't see that I helped you.  Try a fun command, "],
+            ["You're welcome, ", "Of course, ", "No, thank YOU, ", "No problem, ", "Anytime, ","My pleasure, ", "I live to serve, ", "Don't mention it, ",
+                "Happy to help, ", "De nada, ", "No worries, "],
+            ["Thanking me twice?  I feel special, ", "No need to keep thanking me, ", "You're welcome x2, "],
+            ["You're welcome.  You can stop now, ", "Again huh?  Sure thing, ", "That is probably adequate thanking, "],
+            ["Seriously, stop thanking me, ", "I think that is good enough, ", "You're welcome.  Again.  You can stop now, "]
+        ]
 
     def set_things(self, bot_id, slack_client, oauth_client, commands):
         """Set the attributes that required outside information.
@@ -195,15 +195,15 @@ class ChatterBox:
                 user_thanks_history.append(item)
         
         if len(user_bot_history) == 0:
-            say_youre_welcome(0, self.thanks_messages["No Thanks"])
+            say_youre_welcome(0, self.thanks_messages[0])
         elif len(user_bot_history) >= 1:
             if len(user_thanks_history) == 1:
-                say_youre_welcome(1, self.thanks_messages["One Thanks"])
+                say_youre_welcome(1, self.thanks_messages[1])
             elif len(user_thanks_history) == 2:
-                say_youre_welcome(2, self.thanks_messages["Two Thanks"])
+                say_youre_welcome(2, self.thanks_messages[2])
             elif len(user_thanks_history) == 3:
-                say_youre_welcome(3, self.thanks_messages["Three Thanks"])
+                say_youre_welcome(3, self.thanks_messages[3])
             elif len(user_thanks_history) == 4:
-                say_youre_welcome(4, self.thanks_messages["Four Thanks"])
+                say_youre_welcome(4, self.thanks_messages[4])
             elif len(user_thanks_history) >= 5:
                 say_youre_welcome(5, None)
