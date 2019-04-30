@@ -153,6 +153,8 @@ class ChatterBox:
                     timestamp=thanked_time
                 )
 
+            ### TODO: The user can quickly hit the thank you cap if he/she had thanked the bot before actually issuing a command.
+            ### Probably need some more logic to keep that from occurring.
             if bot_history == 0:
                 youre_welcome_message(self.thanks_messages[0])
                 youre_welcome_emote("question")
