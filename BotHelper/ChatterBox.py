@@ -64,7 +64,7 @@ class ChatterBox:
         self.bot_text = "<@{}>".format(bot_id)
         self.commands_list = commands
         self.bot_start_texts = [self.bot_text + " " + x for x in self.commands_list]
-        self.thanks_reg = re.compile(
+        self.thanks_regex = re.compile(
             r"""
             # match anything, but stop at the action
             ^.*?
@@ -100,7 +100,7 @@ class ChatterBox:
         """
         # The first thing to look for is a thank you message:
 
-        if self.thanks_reg.match(event["text"]):
+        if self.thanks_regex.match(event["text"]):
             return True, ChatterType.THANKS
         else:
             return False, None
@@ -204,7 +204,7 @@ class ChatterBox:
             if item.startswith(tuple(self.bot_start_texts)):
                 user_bot_history.append(item)
             # This separates the messages with previous thanks
-            if self.thanks_reg.match(item):
+            if self.thanks_regex.match(item):
                 user_thanks_history.append(item)
 
         # Do the work
