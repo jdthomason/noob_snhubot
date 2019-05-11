@@ -24,30 +24,11 @@ class ChatterBox:
 
         Functions:
 
-        __init__: creates the attributes we will be using.
         set_things: many of the attributes cannot be set immediately.  This is called when we can create the werid ones.
         is_chatter: function used to determine if a user message is "chatter."
         process_chatter: if a message is deemed "chatter," it can be processed here.
         was_thanked: if the user is thanking the bot, we will handle the next step here.
     """
-
-    def __init__(self):
-        """Initialize many of our attritutes here."""
-        self.bot_id = None
-        self.bot_text = None
-        self.bot_start_texts = None
-        self.thanks_regex = None
-        self.slack_client = None
-        self.oauth_client = None
-        self.commands_list = None
-        self.thanks_messages = [
-            ["Did I help you with something? I don't recall, ", "For what?  I don't remember, ", "I don't see that I helped you.  Try a fun command, "],
-            ["You're welcome, ", "Of course, ", "No, thank YOU, ", "No problem, ", "Anytime, ","My pleasure, ", "I live to serve, ", "Don't mention it, ",
-                "Happy to help, ", "De nada, ", "No worries, "],
-            ["Thanking me twice?  I feel special, ", "No need to keep thanking me, ", "You're welcome x2, "],
-            ["You're welcome.  You can stop now, ", "Again huh?  Sure thing, ", "That is probably adequate thanking, "],
-            ["Seriously, stop thanking me, ", "I think that is good enough, ", "You're welcome.  Again.  You can stop now, "]
-        ]
 
     def set_things(self, bot_id, slack_client, oauth_client, commands):
         """Set the attributes that required outside information.
@@ -85,6 +66,14 @@ class ChatterBox:
         )
         self.slack_client = slack_client
         self.oauth_client = oauth_client
+        self.thanks_messages = [
+            ["Did I help you with something? I don't recall, ", "For what?  I don't remember, ", "I don't see that I helped you.  Try a fun command, "],
+            ["You're welcome, ", "Of course, ", "No, thank YOU, ", "No problem, ", "Anytime, ","My pleasure, ", "I live to serve, ", "Don't mention it, ",
+                "Happy to help, ", "De nada, ", "No worries, "],
+            ["Thanking me twice?  I feel special, ", "No need to keep thanking me, ", "You're welcome x2, "],
+            ["You're welcome.  You can stop now, ", "Again huh?  Sure thing, ", "That is probably adequate thanking, "],
+            ["Seriously, stop thanking me, ", "I think that is good enough, ", "You're welcome.  Again.  You can stop now, "]
+        ]
         
     
     def is_chatter(self, event):
